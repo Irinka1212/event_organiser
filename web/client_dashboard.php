@@ -19,6 +19,28 @@ if($_SERVER['REQUEST_METHOD'] === 'POST'){
   if($action === 'decline') $newStatus = 'declined_by_client';
   if($action === 'needs_correction') $newStatus = "needs_correction";
 
+  if(($action ?? '') === 'toggle_public'){
+    $request_id = (int)($_POST['request_id'] ?? 0);
+    $make_public = (int)($_POST['make_public'] ?? 0);
+
+    $stmt = $connection->prepare("
+      UPDATE event_requests
+      SET is_public = ?
+      WHERE id = ? AND client_id = ? AND status = 'accepted_by_client'
+    ");
+
+    $stmt->bind_param('iii', $make_public, $request_id, $client_id);
+
+    if($stmt->execute() && $stmt->affected_rows === 1){
+      header('Location: client_dashboard.php?success=1');
+      exit();
+    }
+    else{
+      $errors[] = "Cannot change visibility";
+    }
+    $stmt->close();
+  }
+
   if($newStatus === null) $errors[] = 'Invalid action.';
 
   if($newStatus === "needs_correction" && $note === ''){
@@ -26,11 +48,13 @@ if($_SERVER['REQUEST_METHOD'] === 'POST'){
   } 
 
   if(!$errors){
+    $allowed_status = "('accepted_by_organiser', 'needs_correction')";
+
     if($newStatus === 'needs_correction'){
       $stmt = $connection->prepare("
               UPDATE event_requests
               SET status = ?, correction_note = ?
-              WHERE id = ? AND client_id = ? AND status='accepted_by_organiser'
+              WHERE id = ? AND client_id = ? AND status IN $allowed_status
       ");
       $stmt->bind_param('ssii', $newStatus, $note, $request_id, $client_id);
     }
@@ -38,7 +62,7 @@ if($_SERVER['REQUEST_METHOD'] === 'POST'){
        $stmt = $connection->prepare("
               UPDATE event_requests
               SET status = ?
-              WHERE id = ? AND client_id = ? AND status='accepted_by_organiser'
+              WHERE id = ? AND client_id = ? AND status IN $allowed_status
       ");
       $stmt->bind_param('sii', $newStatus, $request_id, $client_id);
     }
@@ -59,7 +83,8 @@ if(isset($_GET['success'])){
 }
 
 $stmt = $connection->prepare("
-    SELECT er.id, er.event_type, er.requested_date, er.participants, er.status, er.created_at, er.correction_note,
+    SELECT er.id, er.event_type, er.requested_date, er.participants, er.status, er.created_at,
+    er.correction_note, er.organiser_note, er.is_public,
     u.username AS organiser_name
     FROM event_requests er
     JOIN users u ON u.id = er.organiser_id
@@ -84,6 +109,11 @@ $stmt->close();
   <p>
     Logged as: <?php echo htmlspecialchars($_SESSION['username']); ?> |
     <a href="login.php?logout=1">Logout</a>
+  </p>
+
+  <p>
+    <a href="client_calendar.php">My Calendar</a>
+    <a href="calendar.php">System Calendar</a>
   </p>
 
   <?php if ($success): ?>
@@ -113,7 +143,11 @@ $stmt->close();
         <th>Date</th>
         <th>People</th>
         <th>Status</th>
-        <th>Actions (Step 3)</th>
+        <th>Visibility</th>
+        <th>Comments</th>
+        <th>Organiser Note</th>
+        <th>Client Note</th>
+        <th>Actions</th>
       </tr>
 
       <?php foreach ($requests as $r): ?>
@@ -124,6 +158,47 @@ $stmt->close();
           <td><?php echo htmlspecialchars($r['requested_date']); ?></td>
           <td><?php echo (int)$r['participants']; ?></td>
           <td><?php echo htmlspecialchars($r['status']); ?></td>
+          <td>
+            <?php if ($r['status'] === 'accepted_by_client'): ?>
+              <?php if ((int)$r['is_public'] === 1): ?>
+                <b>Public</b>
+                <form method="post" style="display:inline;">
+                  <input type="hidden" name="request_id" value="<?php echo (int)$r['id']; ?>">
+                  <input type="hidden" name="action" value="toggle_public">
+                  <input type="hidden" name="make_public" value="0">
+                  <button type="submit">Make Private</button>
+                </form>
+              <?php else: ?>
+                <b>Private</b>
+                <form method="post" style="display:inline;">
+                  <input type="hidden" name="request_id" value="<?php echo (int)$r['id']; ?>">
+                  <input type="hidden" name="action" value="toggle_public">
+                  <input type="hidden" name="make_public" value="1">
+                  <button type="submit">Make Public</button>
+                </form>
+              <?php endif; ?>
+            <?php else: ?>
+              <em>—</em>
+            <?php endif; ?>
+          </td>
+
+<td>
+  <a href="request_view.php?id=<?php echo (int)$r['id']; ?>">View comments</a>
+</td>
+
+          <td>
+            <?php if (!empty($r['organiser_note'])): ?>
+              <?php echo nl2br(htmlspecialchars($r['organiser_note']));?>
+            <?php else: ?>
+              <em>--</em>
+            <?php endif;?>
+          </td>
+
+          <td>
+            <?php if (!empty($r['correction_note'])): ?>
+                <div><small><?php echo htmlspecialchars($r['correction_note']); ?></small></div>
+            <?php endif; ?>
+          </td>
 
           <td>
             <?php if ($r['status'] === 'accepted_by_organiser'): ?>
@@ -145,12 +220,10 @@ $stmt->close();
                 <input type="text" name="correction_note" placeholder="Write correction..." required>
                 <button type="submit">Need correction</button>
               </form>
-            <?php else: ?>
-              <em>-</em>
-              <?php if (!empty($r['correction_note'])): ?>
-                <div><small>Note: <?php echo htmlspecialchars($r['correction_note']); ?></small></div>
+
+              <?php else: ?>
+                <em> -- </em>
               <?php endif; ?>
-            <?php endif; ?>
           </td>
         </tr>
       <?php endforeach; ?>
