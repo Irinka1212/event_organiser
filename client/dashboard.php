@@ -53,7 +53,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 if (isset($_GET['success'])) $success = "Request updated successfully";
 
 $stmt = $connection->prepare("
-    SELECT er.id, er.event_type, er.requested_date, er.participants, er.status, er.created_at, er.correction_note, er.organiser_note,
+    SELECT er.id, er.event_type, er.requested_date, er.participants, er.status, er.is_public, er.created_at, er.correction_note, er.organiser_note,
            er.gallery_public,
            (SELECT COUNT(*) FROM galleries g WHERE g.request_id = er.id) AS total_images,
            u.username AS organiser_name
@@ -80,9 +80,11 @@ $stmt->close();
     <div class="card">
         <h1>Client Dashboard</h1>
         <p>
-            Logged in as: <?= htmlspecialchars($_SESSION['username']); ?> |
+            Logged in as: <?= htmlspecialchars($_SESSION['username']); ?> | 
+            <a href="../index.php">Home Page</a> | 
             <a href="../profile/editProfile.php" class="button">Edit Profile</a> |
-            <a href="../auth/login.php?logout=1">Logout</a>
+            <a href="../reports/reportRequest.php">Report Organiser</a> |
+            <a href="../auth/login.php?logout=1">Logout</a>  
         </p>
 
         <?php if ($success): ?>
@@ -111,6 +113,7 @@ $stmt->close();
                         <th>Type</th>
                         <th>Date</th>
                         <th>People</th>
+                        <th>Visibility</th>
                         <th>Status</th>
                         <th>Actions</th>
                     </tr>
@@ -123,6 +126,9 @@ $stmt->close();
                         <td><?= htmlspecialchars($r['event_type']); ?></td>
                         <td><?= htmlspecialchars($r['requested_date']); ?></td>
                         <td><?= (int)$r['participants']; ?></td>
+                        <td>
+                            <?= ($r['is_public'] === 1 ? 'Public' : 'Private');?>
+                        </td>
                         <td><?= htmlspecialchars($r['status']); ?></td>
                         <td>
                             <?php if (!empty($r['organiser_note'])): ?>

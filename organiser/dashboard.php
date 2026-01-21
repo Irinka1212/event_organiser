@@ -45,8 +45,10 @@ $completedRequests  = getCompletedRequests($organiser_id);
         <h1>Organiser Dashboard</h1>
         <p>
             Logged in as <strong><?= htmlspecialchars($_SESSION['username']) ?></strong> |
+            <a href="../index.php">Home Page</a> | 
             <a href="../profile/editProfile.php">Edit Profile</a> |
-            <a href="../auth/login.php?logout=1">Logout</a>
+            <a href="../reports/reportRequest.php">Report Client</a> |
+            <a href="../auth/login.php?logout=1">Logout</a> 
         </p>
 
         <?php if ($success): ?>
@@ -70,7 +72,7 @@ $completedRequests  = getCompletedRequests($organiser_id);
             <thead>
             <tr>
                 <th>ID</th><th>Client</th><th>Email</th><th>Type</th>
-                <th>Date</th><th>People</th><th>Actions</th>
+                <th>Date</th><th>People</th><th>Visibility</th><th>Actions</th>
             </tr>
             </thead>
             <tbody>
@@ -82,6 +84,7 @@ $completedRequests  = getCompletedRequests($organiser_id);
                     <td><?= htmlspecialchars($r['event_type']) ?></td>
                     <td><?= $r['requested_date'] ?></td>
                     <td><?= $r['participants'] ?></td>
+                    <td><?= ($r['is_public'] === 1 ? 'Public' : 'Private');?></td>
                     <td>
                         <form method="post" style="display:inline">
                             <input type="hidden" name="request_id" value="<?= $r['id'] ?>">

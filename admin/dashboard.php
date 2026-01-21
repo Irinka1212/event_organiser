@@ -23,6 +23,7 @@ $errors  = $_GET['errors'] ?? '';
         <h1>Admin Dashboard</h1>
         <p>
             Logged in as: <strong><?php echo htmlspecialchars($_SESSION['username']); ?></strong> |
+            <a href="../index.php">Home Page</a> | 
             <a href="../auth/logout.php">Logout</a>
         </p>
 

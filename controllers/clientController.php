@@ -30,7 +30,7 @@ function getActiveOrganisers(): array {
     return $organisers;
 }
 
-function validateRequest(int $organiser_id, string $event_type, string $requested_date, int $participants): array {
+function validateRequest(int $organiser_id, string $event_type, string $requested_date, int $participants, int $is_public): array {
     $errors = [];
     $allowed_types = ['private_party', 'corporate party', 'team_building', 'birthday', 'other'];
 
@@ -44,6 +44,8 @@ function validateRequest(int $organiser_id, string $event_type, string $requeste
     }
 
     if ($participants < 1 || $participants > 500) $errors[] = "Participants must be between 1 and 500";
+
+    if (!in_array($is_public, [0,1], true)) $errors[] = "Not a valid visibility";
 
     return $errors;
 }
