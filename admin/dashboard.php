@@ -74,9 +74,9 @@ function readableStatus(string $status): string {
                         <td><?= htmlspecialchars($u['role']) ?></td>
                         <td><?= $u['is_active'] ? 'Yes' : 'No' ?></td>
                         <td>
-                            <a href="editUser.php?user_id=<?= $u['id'] ?>" class="button">Edit</a>
+                            <a href="editUser.php?user_id=<?= $u['id'] ?>" class="button">Edit</a> | 
                             <?php if ($u['id'] != $_SESSION['id']): ?>
-                                <a href="deleteUser.php?user_id=<?= $u['id'] ?>" onclick="return confirm('Delete this user?')" class="button">Delete</a>
+                                <a href="deleteUser.php?user_id=<?= $u['id'] ?>" onclick="return confirm('Delete this user?')" class="button">Delete</a>  | 
                                 <?php if ($u['is_active']): ?>
                                     <a href="blockUser.php?user_id=<?= $u['id'] ?>" onclick="return confirm('Block this user?')" class="button">Block</a>
                                 <?php else: ?>
@@ -140,7 +140,7 @@ function readableStatus(string $status): string {
                             <a href="comments.php?request_id=<?= $r['id'] ?>" class="button">View Comments</a>
                         </td>
                         <td>
-                            <a href="editRequest.php?request_id=<?= $r['id'] ?>" class="button">Edit</a>
+                            <a href="editRequest.php?request_id=<?= $r['id'] ?>" class="button">Edit</a> | 
                             <a href="deleteRequest.php?request_id=<?= $r['id'] ?>" class="button" onclick="return confirm('Delete this request?')">Delete</a>
                         </td>
                     </tr>

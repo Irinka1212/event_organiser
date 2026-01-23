@@ -187,7 +187,7 @@ function readableStatus(string $status): string {
                                 <?= $r['gallery_public'] ? 'checked' : '' ?>
                                 onchange="this.form.submit()">
                         </label>
-                        </form>
+                    </form><br>
                         <a href="gallery.php?request_id=<?= $r['id'] ?>" class="button">View Photos</a>
                     </td>
                     <td>

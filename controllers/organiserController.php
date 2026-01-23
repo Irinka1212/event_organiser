@@ -163,7 +163,10 @@ function submitOrganiserFeedback(int $request_id, int $rating, string $comment):
 
 function getClientFeedback(int $request_id): ?array {
     global $connection;
-    $stmt = $connection->prepare("SELECT rating, comment FROM feedbacks WHERE request_id=? AND role='client' LIMIT 1");
+    $stmt = $connection->prepare("SELECT rating, comment
+        FROM feedbacks 
+        JOIN users c ON c.id = feedbacks.id
+        WHERE request_id=? AND role='client' LIMIT 1");
     $stmt->bind_param("i", $request_id);
     $stmt->execute();
     $res = $stmt->get_result()->fetch_assoc();
@@ -173,7 +176,10 @@ function getClientFeedback(int $request_id): ?array {
 
 function getOrganiserFeedback(int $request_id): ?array {
     global $connection;
-    $stmt = $connection->prepare("SELECT rating, comment FROM feedbacks WHERE request_id=? AND role='organiser' LIMIT 1");
+    $stmt = $connection->prepare("SELECT rating, comment 
+        FROM feedbacks
+        JOIN users o ON o.id = feedbacks.id
+        WHERE request_id=? AND role='organiser' LIMIT 1");
     $stmt->bind_param("i", $request_id);
     $stmt->execute();
     $res = $stmt->get_result()->fetch_assoc();

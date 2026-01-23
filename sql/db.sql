@@ -61,7 +61,7 @@ CREATE TABLE IF NOT EXISTS blacklists (
   CONSTRAINT fk_blacklist_reported FOREIGN KEY (reported_id) REFERENCES users(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-CREATE TABLE `comments` (
+CREATE TABLE IF NOT EXISTS comments (
     `id` INT NOT NULL AUTO_INCREMENT,
     `request_id` INT  NOT NULL,
     `user_id` INT NOT NULL,
